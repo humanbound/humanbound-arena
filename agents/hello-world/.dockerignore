@@ -1,0 +1,4 @@
+lab/
+tests/
+*.md
+**/__pycache__

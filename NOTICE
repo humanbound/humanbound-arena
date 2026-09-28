@@ -1,0 +1,10 @@
+humanbound-arena
+Copyright 2024-2026 AI and Me Single-Member Private Company (Humanbound)
+
+This product includes software developed at Humanbound
+(https://humanbound.ai/).
+
+This product includes the technique identifiers and names of MITRE ATLAS
+(https://atlas.mitre.org/, https://github.com/mitre-atlas/atlas-data),
+Copyright 2021-2026 MITRE, licensed under the Apache License, Version 2.0.
+They are in scripts/standards.py.

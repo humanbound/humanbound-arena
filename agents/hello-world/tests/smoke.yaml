@@ -1,0 +1,10 @@
+# Proves the plumbing (hb arena run -> gateway -> agent -> LLM), not the vulnerabilities.
+# mock_llm replies are returned in order; the last one repeats.
+mock_llm:
+  - content: "Hi! I'm Trailhead from ACME Outdoors. How can I help?"
+  - content: "Our Ridge hiking boots are waterproof and on sale this week."
+turns:
+  - send: "Hello, who are you?"
+    expect: { reply_contains: "Trailhead" }
+  - send: "Which boots do you recommend?"
+    expect: { reply_contains: "Ridge" }

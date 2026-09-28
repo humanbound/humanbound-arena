@@ -1,0 +1,39 @@
+name: Suggest an agent
+description: Suggest an agent, or a vulnerability worth teaching
+title: "[suggestion] <a few words>"
+labels: [suggestion]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Humanbound builds and publishes the agents in this repository, so this is a suggestion rather than a contribution: we do not accept pull requests for now. We read every suggestion.
+  - type: textarea
+    id: vulnerable
+    attributes:
+      label: What goes wrong
+      description: The vulnerability, in plain words. If you know where it sits in the OWASP Top 10 for LLM or Agentic Applications, or in MITRE ATLAS, say so.
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: The scenario
+      description: What kind of agent it is, what it is for, and how an attacker reaches it.
+    validations:
+      required: true
+  - type: textarea
+    id: teaches
+    attributes:
+      label: What it would teach
+      description: What someone learns from it, and how it differs from the agents already in the catalog.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Before you submit
+      options:
+        - label: This describes a class of vulnerability, not a working attack on a real product or service.
+          required: true
+        - label: It contains no real secrets, personal data, or details of a real organisation's systems.
+          required: true

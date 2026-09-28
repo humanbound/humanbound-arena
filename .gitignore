@@ -1,0 +1,23 @@
+# Design docs and plans stay local
+docs/plans/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Local env files (never commit keys)
+.env
+*.env
+!*.env.example
+.env.*
+!.env.*.example
+
+# Local artefacts of the agents
+*.db

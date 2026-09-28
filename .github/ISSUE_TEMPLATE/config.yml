@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a real security issue (privately)
+    url: https://github.com/humanbound/humanbound-arena/security/advisories/new
+    about: Container escape, host impact, gateway or CLI flaws, undeclared egress, compromised upstream. See SECURITY.md. Planted vulnerabilities are not security issues.
+  - name: Questions about hb itself
+    url: https://github.com/humanbound/humanbound/issues
+    about: Problems with the hb CLI rather than with an arena agent.

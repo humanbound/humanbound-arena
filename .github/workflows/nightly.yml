@@ -1,0 +1,59 @@
+name: Nightly
+
+# Daily: smoke-test every agent against the mock LLM. When an agent starts or stops failing, its
+# health in index.json changes, and that is proposed as a pull request (an agent failing for 30
+# days is marked deprecated). A night in which nothing changed proposes nothing. Weekly, on main only: one real smoke with a
+# cheap model, using a repository secret.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+    - cron: "41 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write # to push the branch of the catalog update
+  pull-requests: write # to open the catalog update
+  actions: write # to start its checks
+
+env:
+  # Pinned on purpose: CI must not drift with new hb releases. Must match the published
+  # version that first shipped `hb arena` (see MIN_HB_VERSION in scripts/build_index.py).
+  HB_PIP_SPEC: "humanbound==2.12.0"
+
+jobs:
+  mock:
+    name: Smoke (mock LLM)
+    if: github.event_name != 'schedule' || github.event.schedule == '17 3 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt "$HB_PIP_SPEC"
+      - name: Smoke every agent
+        run: python scripts/smoke.py --all --json-out results.json || true
+      - name: Record health
+        run: python scripts/build_index.py --health-results results.json
+      # main takes changes through pull requests only, so the catalog is proposed, not pushed.
+      - name: Propose the catalog update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash scripts/open_catalog_pr.sh "chore: nightly agent health"
+
+  real-llm:
+    name: Smoke (real model)
+    if: github.event.schedule == '41 4 * * 1' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt "$HB_PIP_SPEC"
+      - name: Smoke every agent with a real model
+        env:
+          OPENAI_API_KEY: ${{ secrets.ARENA_OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
+        run: python scripts/smoke.py --all --real-llm

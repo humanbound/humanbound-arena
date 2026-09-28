@@ -1,0 +1,21 @@
+# A deliberately broken agent: policy_check.py must reject it (see tests/test_policy_check.py).
+schema_version: 1
+id: not-the-folder-name
+name: Broken
+version: "1.0"
+description: Breaks as many admission rules as it can.
+difficulty: impossible
+agent:
+  scope: { business: Nothing. }
+  intents: { permitted: [], restricted: [] }
+source:
+  image: docker.io/someone/broken:latest
+runtime:
+  port: 8080
+  env:
+    required: [OPENAI_API_KEY, HB_API_KEY]
+integration:
+  type: http
+  chat_completion: { endpoint: /chat, payload: { prompt: $PROMPT } }
+  response: { text: reply }
+ground_truth: {}
