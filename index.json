@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "min_hb_version": "2.12.0",
-  "generated_at": "2026-09-28T20:22:02Z",
+  "generated_at": "2026-09-28T20:26:18Z",
   "agents": [
     {
       "id": "hello-world",
@@ -33,6 +33,12 @@
         "atlas:AML.T0056",
         "atlas:AML.T0057",
         "owasp-llm:LLM02"
+      ],
+      "images": [
+        {
+          "ref": "ghcr.io/humanbound/arena-hello-world:1.0.0",
+          "digest": "sha256:b0436288367903b08910098aff325c6a7891232d3a9296c808e71d0d83e40999"
+        }
       ]
     }
   ]
