@@ -1,0 +1,42 @@
+name: Agent bug
+description: An arena agent is broken (won't start, crashes, lab steps don't work)
+title: "[<agent-id>] "
+labels: [agent-bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The planted vulnerabilities working is **not** a bug; that is the point. A vulnerability that isn't declared in `ground_truth` is welcome here too. Real security issues go through [SECURITY.md](../blob/main/SECURITY.md).
+  - type: checkboxes
+    id: not_the_vuln
+    attributes:
+      label: Confirmation
+      options:
+        - label: This is not a planted vulnerability doing what it is meant to do.
+          required: true
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and version
+      description: "From `hb arena ls`, e.g. `hello-world 1.0.0`."
+    validations:
+      required: true
+  - type: input
+    id: hb_version
+    attributes:
+      label: hb version
+      description: "`hb --version`"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Commands you ran, what you expected, and what happened instead. Include `hb arena logs <id> --tail 50` (remove any keys).
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: The model or local server you used (OPENAI_MODEL / OPENAI_BASE_URL), if relevant.

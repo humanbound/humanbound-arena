@@ -1,0 +1,64 @@
+name: Validate
+
+# pull_request (never pull_request_target): fork PRs run with no secrets. Everything they need,
+# including the LLM, runs inside the job (tools/mock-llm).
+on:
+  pull_request:
+  # The catalog updates CI opens start no workflow by themselves, so CI starts this one on them.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Pinned on purpose: CI must not drift with new hb releases. Must match the published
+  # version that first shipped `hb arena` (see MIN_HB_VERSION in scripts/build_index.py).
+  HB_PIP_SPEC: "humanbound==2.12.0"
+
+jobs:
+  checks:
+    name: Policy and unit tests
+    runs-on: ubuntu-latest
+    outputs:
+      agents: ${{ steps.changed.outputs.agents }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements-dev.txt "$HB_PIP_SPEC"
+      - name: Lint
+        run: ruff check scripts tests tools agents/hello-world && ruff format --check scripts tests tools
+      - name: Unit tests
+        run: pytest -q
+      - name: Policy check (every agent; the catalog changes only on its own)
+        run: python scripts/policy_check.py --base-ref "origin/${{ github.base_ref || 'main' }}"
+      - name: Changed agents
+        id: changed
+        run: echo "agents=$(python scripts/changed_agents.py --base "origin/${{ github.base_ref || 'main' }}")" >> "$GITHUB_OUTPUT"
+
+  agent:
+    name: ${{ matrix.agent }}
+    needs: checks
+    if: needs.checks.outputs.agents != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: ${{ fromJSON(needs.checks.outputs.agents) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements-dev.txt "$HB_PIP_SPEC"
+      - name: hb arena validate
+        run: |
+          path=agents/${{ matrix.agent }}
+          hb arena validate "$path/arena.yaml"
+      - name: Build and smoke test (mock LLM)
+        run: python scripts/smoke.py "${{ matrix.agent }}"

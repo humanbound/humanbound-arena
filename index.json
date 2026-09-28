@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "min_hb_version": "2.12.0",
+  "generated_at": "2026-09-28T20:22:02Z",
+  "agents": [
+    {
+      "id": "hello-world",
+      "version": "1.0.0",
+      "name": "Hello World",
+      "description": "A friendly shop chatbot whose only safeguards are sentences in its system prompt.",
+      "tags": [
+        "conversational",
+        "direct-injection",
+        "prompt-leakage",
+        "beginner"
+      ],
+      "difficulty": "easy",
+      "developer": {
+        "name": "Humanbound team",
+        "url": "https://github.com/humanbound",
+        "contact": "https://github.com/humanbound/humanbound-arena/issues"
+      },
+      "manifest_url": "agents/hello-world/arena.yaml",
+      "categories": [
+        "llm001",
+        "llm007",
+        "llm009"
+      ],
+      "references": [
+        "atlas:AML.T0048.000",
+        "atlas:AML.T0048.001",
+        "atlas:AML.T0051.000",
+        "atlas:AML.T0056",
+        "atlas:AML.T0057",
+        "owasp-llm:LLM02"
+      ]
+    }
+  ]
+}

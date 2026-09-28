@@ -1,0 +1,9 @@
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]  # the formatter owns line length; long strings stay readable
+
+[lint.isort]
+known-first-party = ["arena_lib", "policy_check", "build_index", "build_images", "changed_agents", "smoke", "mock_llm", "conftest"]

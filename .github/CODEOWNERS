@@ -1,0 +1,5 @@
+# Default owners for everything in the repository.
+*               @humanbound/maintainers
+
+# Every agent lives here; its manifest credits whoever wrote it.
+/agents/        @humanbound/maintainers
