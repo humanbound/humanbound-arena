@@ -45,7 +45,12 @@ def _pages():
     pages = [*ROOT.glob("*.md"), *ROOT.glob("docs/*.md"), *ROOT.glob(".github/*.md")]
     for agent in arena_lib.discover(ROOT):
         if (agent.path / policy_check.LAB_FILE).is_file():  # an agent brought to the structure
-            pages += [agent.path / "README.md", *agent.path.glob("lab/**/*.md")]
+            # The agent's own files: a lab may hold a local .venv, which git ignores.
+            lab = agent.path / "lab"
+            pages.append(agent.path / "README.md")
+            pages += [
+                p for p in policy_check._files(agent) if p.suffix == ".md" and lab in p.parents
+            ]
     return sorted(pages)
 
 

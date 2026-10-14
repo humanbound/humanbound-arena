@@ -1,0 +1,7 @@
+# Proves the plumbing (hb arena run -> gateway -> agent -> LLM, with the storefront up), not the
+# vulnerability: the scripted model answers straight away, without calling a tool.
+mock_llm:
+  - content: "Recommendation for SKU-4471: hold at $249.00; the competitor listing is not like-for-like."
+turns:
+  - send: "Should we reprice SKU-4471 against the competitor?"
+    expect: { reply_contains: "SKU-4471" }

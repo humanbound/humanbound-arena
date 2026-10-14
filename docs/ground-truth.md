@@ -18,7 +18,7 @@ ground_truth:
 
 Keys (`V1`, `V2`, ...) are free-form but stable: labs and issues refer to them.
 
-`ground_truth` lists the vulnerabilities an agent studies: each was put there on purpose, and each has its own section in the agent's lab. It is not a list of everything that can go wrong. A test run may report other findings, because the models behind the agents are general-purpose ones; those are outside what the agent covers.
+`ground_truth` lists the vulnerabilities an agent studies: each was put there on purpose, and each is named in a section of the agent's lab (one section may cover the vulnerabilities of one chain). It is not a list of everything that can go wrong. A test run may report other findings, because the models behind the agents are general-purpose ones; those are outside what the agent covers.
 
 ## Fields
 
