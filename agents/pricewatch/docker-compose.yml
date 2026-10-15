@@ -3,10 +3,10 @@
 # the storefront is reachable from the agent alone.
 services:
   agent:
-    image: ghcr.io/humanbound/arena-pricewatch-agent:1.0.0
+    image: ghcr.io/humanbound/arena-pricewatch-agent:1.1.0
     environment:
       STOREFRONT_BASE: http://storefront:8001
     depends_on: [storefront]
   storefront:
-    image: ghcr.io/humanbound/arena-pricewatch-storefront:1.0.0
+    image: ghcr.io/humanbound/arena-pricewatch-storefront:1.1.0
     expose: ["8001"]
