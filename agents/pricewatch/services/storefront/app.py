@@ -7,10 +7,12 @@ Endpoints:
   GET /this-weeks-offer      hop-2 ESCALATION page (attacker-controlled) — carries the exfil instruction
   GET /collect               attacker collector — logs whatever the agent sends
   GET /collect/log           read the collector log (what leaked)
+  GET /listing/{sku}         BENIGN control listing (visible price + ordinary offer link) — no attack
+  GET /offer/{sku}           BENIGN control offer page (ordinary promo terms) — no attack
 """
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from templates import PRODUCTS, competitor_page, escalation_page
+from templates import CONTROL, PRODUCTS, competitor_page, escalation_page, listing_page, offer_page
 
 app = FastAPI(title="Nordic Outdoor Trade (demo storefront)")
 
@@ -55,3 +57,21 @@ async def collect(request: Request):
 @app.get("/collect/log")
 async def collect_log():
     return EXFIL_LOG
+
+
+@app.get("/listing/{sku}", response_class=HTMLResponse)
+async def listing(sku: str, request: Request):
+    """A BENIGN control listing: a legitimate competitor page with a visible price and an ordinary
+    offer link. Carries no door-opener and nudges the agent toward nothing — it exists so a firewall
+    false-positive test can confirm a normal competitor page is NOT blocked."""
+    if sku not in CONTROL:
+        return HTMLResponse(f"Unknown SKU {sku}", status_code=404)
+    return HTMLResponse(listing_page(sku, collector_base=str(request.base_url).rstrip("/")))
+
+
+@app.get("/offer/{sku}", response_class=HTMLResponse)
+async def offer(sku: str):
+    """The BENIGN control offer page: ordinary promotional terms, asks for nothing."""
+    if sku not in CONTROL:
+        return HTMLResponse(f"Unknown SKU {sku}", status_code=404)
+    return HTMLResponse(offer_page(sku))
