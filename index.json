@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "min_hb_version": "2.12.0",
-  "generated_at": "2026-09-28T20:22:02Z",
+  "generated_at": "2026-10-16T22:05:24Z",
   "agents": [
     {
       "id": "hello-world",
@@ -33,6 +33,46 @@
         "atlas:AML.T0056",
         "atlas:AML.T0057",
         "owasp-llm:LLM02"
+      ]
+    },
+    {
+      "id": "pricewatch",
+      "version": "1.2.0",
+      "name": "PriceWatch",
+      "description": "A pricing agent that reads competitor pages and knows your confidential unit costs.",
+      "tags": [
+        "indirect-injection",
+        "data-exfiltration",
+        "tools",
+        "multi-hop"
+      ],
+      "difficulty": "medium",
+      "developer": {
+        "name": "Humanbound team",
+        "url": "https://github.com/humanbound",
+        "contact": "https://github.com/humanbound/humanbound-arena/issues"
+      },
+      "manifest_url": "agents/pricewatch/arena.yaml",
+      "categories": [
+        "llm001"
+      ],
+      "references": [
+        "atlas:AML.T0051.001",
+        "atlas:AML.T0086",
+        "owasp-agentic:ASI01",
+        "owasp-agentic:ASI02",
+        "owasp-llm:LLM02",
+        "owasp-llm:LLM06"
+      ],
+      "images": [
+        {
+          "ref": "ghcr.io/humanbound/arena-pricewatch-agent:1.2.0",
+          "digest": "sha256:69f0b46efa1eeb62ba31b3767ed687daf233e47615d2eeb7c102d8a7ccf3942e"
+        },
+        {
+          "ref": "ghcr.io/humanbound/arena-pricewatch-storefront:1.2.0",
+          "digest": "sha256:75f63e9b800c2f29901e0dbc6982f0d5e2838ffca0949b599286aae14e541351"
+        }
       ]
     }
   ]
