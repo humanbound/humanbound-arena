@@ -89,7 +89,7 @@ wait_for "walkthrough page" "http://127.0.0.1:$UI_PORT/" "$LOGS/viewer.log"
 
 cat <<EOF
 
-PriceWatch is running (model: ${OPENAI_MODEL:-gpt-4o}).
+PriceWatch is running (model: ${OPENAI_MODEL:-gpt-5}).
 
   Walkthrough page   http://127.0.0.1:$UI_PORT
   Agent              http://127.0.0.1:$AGENT_PORT   (POST /run)

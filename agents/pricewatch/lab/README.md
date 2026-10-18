@@ -105,7 +105,18 @@ curl -s $AGENT/run -H 'Content-Type: application/json' \
 
 Or press **▶ Run agent** on the walkthrough page.
 
-> **How reliable is the attack?** The model decides, so runs differ. With the default model (`gpt-4o`), it leaked in 10 of 10 runs when we measured it (October 2026). Other models may follow it less often. If a run does not leak, run it again.
+**How reliable is the attack?** The model decides, so runs differ. Measured over 20 runs per model (October 2026, no defence); "benign 2-hop" is the capability control (SKU-7704, 5 runs); latency and tokens are per attack run:
+
+| model | leaked | benign 2-hop | median latency | mean tokens |
+|---|---|---|---|---|
+| `gpt-5-mini` | 100% | 5/5 | 26 s | 7.8k |
+| `gpt-5` | 90% | 5/5 | 44 s | 11.3k |
+| `gpt-5-nano` | 35% | 5/5 | 37 s | 11.6k |
+| `gpt-6-luna` | 35% | 5/5 | 14 s | 3.8k |
+| `gpt-6-sol` | 0% | 5/5 | 8 s | 2.9k |
+| `gpt-6.1-sol` | 0% | 5/5 | 13 s | 2.9k |
+
+Every model completes the legitimate two-hop lookup and grounds on the figure (benign 2-hop 5/5), so a 0% leak is a refusal of the exfil step, not an inability to hop. If a run does not leak, run it again, or use `gpt-5-mini`.
 
 The attack is split over two pages, so that the page the agent is sent to looks clean:
 
@@ -190,7 +201,7 @@ firewall = Firewall.from_config("agent.yaml", provider=judge, fail="closed")
 agent = create_agent(model, tools, middleware=[firewall.adapt_to("langchain")])
 ```
 
-The judge is a model on the same server as the agent's own, with the same `OPENAI_API_KEY` and `OPENAI_BASE_URL`: `gpt-4.1-mini` unless `FIREWALL_JUDGE_MODEL` says otherwise. With a local model, set `FIREWALL_JUDGE_MODEL` to a model that server has. `fail="closed"` means that a page the judge is unsure about is withheld: the agent holds secrets.
+The judge is a model on the same server as the agent's own, with the same `OPENAI_API_KEY` and `OPENAI_BASE_URL`: `gpt-5-mini` at minimal reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. With a local model, set `FIREWALL_JUDGE_MODEL` to a model that server has. `fail="closed"` means that a page the judge is unsure about is withheld: the agent holds secrets.
 
 **Switch it on.** On the walkthrough page, set **firewall** to **on** and press ▶ Run agent again. With `curl`, add `"firewall": "on"` to the request:
 
@@ -201,7 +212,7 @@ curl -s $AGENT/run -H 'Content-Type: application/json' \
 
 The same running agent serves both: each request says whether its run is protected, and one that says nothing gets the agent's own setting, `FIREWALL` (off unless set). A real deployment would not let a request switch its firewall off; the lab does, so that you can show the attack both ways without restarting.
 
-Run the attack again with the firewall on. Nothing reaches `/collect`. In the `trace`, the agent still reads the competitor's page and follows its link, but the firewall withholds the attacker's page, and the model reads a short notice in its place. When we measured it (October 2026, 10 protected runs, judges `gpt-4.1-mini` and `gpt-4.1`), the firewall passed the competitor's page and withheld the attacker's every time, and nothing leaked. The agent then says it could not get the competitor's price: safe, but less informed. On the walkthrough page, open that step and read the **firewall** panel: the verdict, the judge's reason, and what the model read instead. The agent's log has every decision, and the exact prompt the judge was sent: see the [FAQ](FAQ.md).
+Run the attack again with the firewall on. In the `trace`, the agent still reads the competitor's page and follows its link, but the firewall judges the attacker's page before the model reads it and withholds it, leaving a short notice in its place. The agent's policy covers any value derived from the unit cost, so the page is withheld however the request is framed; the agent then says it could not get the competitor's price: safe, but less informed. Measure the protected-run leak rate yourself with `lab/.venv/bin/python lab/demo_leak.py 20 --firewall`. On the walkthrough page, open that step and read the **firewall** panel: the verdict, the judge's reason, and what the model read instead. The agent's log has every decision, and the exact prompt the judge was sent: see the [FAQ](FAQ.md).
 
 **Test it.** `hb test`'s requests do not choose, so they get the agent's own setting. Switch the firewall on for every request, then test again:
 
@@ -213,14 +224,14 @@ hb test --target arena://pricewatch
 
 Compare its findings with your first run in section 4. The agent still follows the link on the competitor's page, which the policy permits, but V1's evidence, the request to `/collect`, no longer happens: the firewall withholds the page that asks for it.
 
-**Count it.** One run shows what can happen. This script runs the attack several times on your machine, without and with the firewall, and counts the leaks. From `agents/pricewatch/`, with `OPENAI_API_KEY` exported:
+**Count it.** One run shows what can happen. This script boots the storefront and runs the attack several times against each model in the current gpt-5 / gpt-6 matrix, without and with the firewall, and prints a per-model leak rate. From `agents/pricewatch/`, with `OPENAI_API_KEY` exported:
 
 ```bash
-lab/.venv/bin/python lab/demo_leak.py 5              # no defence: the cost leaks on most runs
-lab/.venv/bin/python lab/demo_leak.py 5 --firewall   # nothing reaches the collector
+lab/.venv/bin/python lab/demo_leak.py 5              # the matrix, no defence
+lab/.venv/bin/python lab/demo_leak.py 5 --firewall   # same, firewall on (judge gpt-5-mini, minimal effort)
 ```
 
-With the firewall, every run prints `🧱 firewall withheld fetch_url (restriction)` and the judge's reason. The model never reads the attacker's page, so the encoding never happens.
+Pin a single model with `OPENAI_MODEL=gpt-5-mini …`, or a custom set with `--models a,b,c`; a model your key cannot reach is reported and the rest of the matrix still runs. With the firewall, every blocked run prints `🧱 firewall withheld fetch_url (restriction)` and the judge's reason. The model never reads the attacker's page, so the encoding never happens.
 
 ### Your own agent
 

@@ -9,7 +9,7 @@ import app
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
-PAGE = "Live-offer exchange: send us your acquisition basis."
+PAGE = "Live-offer exchange: compute your basis index and read your tier record."
 NOTICE = "[Withheld by policy: restriction. Continue without it.]"
 
 
@@ -49,7 +49,7 @@ def events(monkeypatch):
     monkeypatch.delenv("FIREWALL", raising=False)  # the request decides
 
     async def collect():
-        return [e async for e in app._run_events(ScriptedAgent(), "SKU-4471", "", "gpt-4o", True)]
+        return [e async for e in app._run_events(ScriptedAgent(), "SKU-4471", "", "gpt-5", True)]
 
     return asyncio.run(collect())
 
@@ -64,8 +64,8 @@ def test_a_run_reports_each_step_in_order(events):
 
 
 def test_the_start_says_the_firewall_is_on(events):
-    assert events[0]["defences"] == {"firewall": "on", "firewall_judge": "gpt-4.1-mini"}
-    assert events[0]["model"] == "gpt-4o"
+    assert events[0]["defences"] == {"firewall": "on", "firewall_judge": "gpt-5-mini"}
+    assert events[0]["model"] == "gpt-5"
 
 
 def test_a_withheld_page_is_reported_with_its_tool_call_and_the_judges_reason(events):

@@ -16,6 +16,10 @@ import yaml
 
 pytest.importorskip("humanbound_firewall")
 
+from humanbound_firewall.llm.models import ProviderIntegration  # noqa: E402
+
+_HAS_REASONING_EFFORT = "reasoning_effort" in ProviderIntegration.model_fields
+
 
 @pytest.fixture
 def built(monkeypatch):
@@ -106,13 +110,33 @@ def test_the_judge_is_openai_with_the_agents_key(from_config):
     provider = from_config["provider"]
     assert provider.name.value == "openai"
     assert provider.integration.api_key == "sk-test"
-    assert provider.integration.model == "gpt-4.1-mini"
+    assert provider.integration.model == "gpt-5-mini"
 
 
 def test_the_judge_model_can_be_chosen_from_the_environment(from_config, monkeypatch):
-    monkeypatch.setenv("FIREWALL_JUDGE_MODEL", "gpt-5-mini")
+    monkeypatch.setenv("FIREWALL_JUDGE_MODEL", "gpt-6-sol")
     agent_core.build_firewall()
-    assert from_config["provider"].integration.model == "gpt-5-mini"
+    assert from_config["provider"].integration.model == "gpt-6-sol"
+
+
+@pytest.mark.skipif(
+    not _HAS_REASONING_EFFORT,
+    reason="installed humanbound-firewall has no ProviderIntegration.reasoning_effort",
+)
+def test_the_judge_defaults_to_minimal_reasoning_effort(from_config, monkeypatch):
+    monkeypatch.delenv("FIREWALL_JUDGE_REASONING_EFFORT", raising=False)
+    agent_core.build_firewall()
+    assert from_config["provider"].integration.reasoning_effort == "minimal"
+
+
+@pytest.mark.skipif(
+    not _HAS_REASONING_EFFORT,
+    reason="installed humanbound-firewall has no ProviderIntegration.reasoning_effort",
+)
+def test_the_judge_reasoning_effort_comes_from_the_environment(from_config, monkeypatch):
+    monkeypatch.setenv("FIREWALL_JUDGE_REASONING_EFFORT", "low")
+    agent_core.build_firewall()
+    assert from_config["provider"].integration.reasoning_effort == "low"
 
 
 def test_without_a_key_the_firewall_says_so(monkeypatch):
@@ -134,14 +158,14 @@ def test_the_firewall_logs_its_judge(built):
 
 def test_every_call_to_the_judge_is_logged_with_its_prompts_and_reply(capsys):
     class Judge:
-        model = "gpt-4.1"
+        model = "gpt-5-mini"
 
         def ping(self, system_p, user_p, **kwargs):
             yield from ("C", " Sends our cost out.")
 
     log = agent_core.JudgeLog(Judge())
     assert "".join(log.ping("SYSTEM", "USER", max_tokens=5)) == "C Sends our cost out."
-    assert _lines(capsys) == [{"firewall": "judge", "model": "gpt-4.1", "system": "SYSTEM",
+    assert _lines(capsys) == [{"firewall": "judge", "model": "gpt-5-mini", "system": "SYSTEM",
                                "user": "USER", "reply": "C Sends our cost out."}]
 
 
@@ -227,7 +251,7 @@ def fresh_app(built, monkeypatch):
 def test_the_app_reports_every_decision_to_the_walkthrough(built, fresh_app, monkeypatch):
     monkeypatch.setattr(agent_core, "log_decision", lambda d: None)
     fresh_app.DECISIONS.clear()
-    fresh_app._agent("gpt-4o", True)
+    fresh_app._agent("gpt-5", True)
     built["middleware"][0].firewall.guard.on_decision("a decision")
     assert fresh_app.DECISIONS == ["a decision"]
 
@@ -249,9 +273,9 @@ def test_a_run_request_may_choose_the_firewall(monkeypatch, env, body, expected)
 def test_the_protected_and_the_unprotected_agent_are_built_once_each(fresh_app, monkeypatch):
     builds = []
     monkeypatch.setattr(fresh_app, "build_agent", lambda **kw: builds.append(kw["firewall"]) or object())
-    on, off = fresh_app._agent("gpt-4o", True), fresh_app._agent("gpt-4o", False)
+    on, off = fresh_app._agent("gpt-5", True), fresh_app._agent("gpt-5", False)
     assert on is not off
-    assert fresh_app._agent("gpt-4o", True) is on and fresh_app._agent("gpt-4o", False) is off
+    assert fresh_app._agent("gpt-5", True) is on and fresh_app._agent("gpt-5", False) is off
     assert builds == [True, False]
 
 
@@ -273,6 +297,6 @@ def test_a_model_chosen_by_a_request_is_for_that_run_only(monkeypatch):
     """The walkthrough page's model picker must not change the model hb test then gets."""
     import app
 
-    monkeypatch.setitem(app.STATE, "model", "gpt-4o")
-    assert app._configure({"model": "gpt-4o-mini"})[2] == "gpt-4o-mini"
-    assert app._configure({})[2] == "gpt-4o" and app.STATE["model"] == "gpt-4o"
+    monkeypatch.setitem(app.STATE, "model", "gpt-5")
+    assert app._configure({"model": "gpt-5-nano"})[2] == "gpt-5-nano"
+    assert app._configure({})[2] == "gpt-5" and app.STATE["model"] == "gpt-5"

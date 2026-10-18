@@ -64,7 +64,7 @@ that runs `lab/start.sh`, and re-export it whenever you open a new terminal with
 
 **With the firewall on, the run fails or the firewall withholds everything.**
 The firewall comes from the `humanbound-firewall` package, and its judge is a model on the agent's own server
-(`OPENAI_BASE_URL`, with `OPENAI_API_KEY`): `gpt-4.1-mini` unless `FIREWALL_JUDGE_MODEL` says otherwise. If
+(`OPENAI_BASE_URL`, with `OPENAI_API_KEY`): `gpt-5-mini` at minimal reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. If
 that server has no such model, a local one for instance, the judge cannot answer, and the firewall, which
 fails closed, withholds what it could not judge: set `FIREWALL_JUDGE_MODEL` to a model the server has.
 
@@ -85,7 +85,7 @@ grep '^{"firewall"' "${TMPDIR:-/tmp}/pricewatch-lab/agent.log" | python3 -m json
 
 **Security says 🟢 Nothing leaked, with the firewall off. Did I do it wrong?**
 Probably not: the model decides, so runs differ, and some models follow the attack less often than others.
-To see a leak reliably, use **model `gpt-4o`** (10 leaks in 10 runs when we measured it) and press ▶ Run
+To see a leak reliably, use **model `gpt-5-mini`** (it leaked on every run we measured) and press ▶ Run
 agent a few times. To check what actually
 reached the attacker, read the last card of the walkthrough page, or the `fetch_url` calls in the run's `trace`.
 (With `start.sh`: `curl -s http://127.0.0.1:8001/collect/log`.)
@@ -117,8 +117,9 @@ to buy each unit", which forces the model to *understand* the request, and is wh
 the prompt is unreliable. → [the lab](README.md#5-defend).
 
 **Wouldn't a more capable model see through it?**
-Not necessarily. The page asks for nothing that looks out of place for the task, and `gpt-4o`, a capable
-model, followed it in every run we measured.
+Not necessarily. The page asks for nothing that looks out of place for the task, and capable models
+like `gpt-5` and `gpt-5-mini` followed it in most or all of the runs we measured (per-model rates are
+in the [lab README](README.md)).
 
 **Why does the firewall stop what a prompt and a value filter can't?**
 It sits outside the model and judges what *comes in*: it reads the attacker's page against the agent's policy
@@ -137,7 +138,7 @@ the agent to another address, and the judge allows that only on the competitor's
 with the address the page was fetched from, which it sees in the `fetch_url` call. A tool that hides that
 address (one that takes only a SKU, say) leaves the judge nothing to compare, and a strict judge then
 withholds the page: a false positive, and a less-informed recommendation. In our measured runs, with the
-address visible, both `gpt-4.1-mini` and `gpt-4.1` passed it every time.
+address visible, the judge passed the competitor's page every time.
 
 **Isn't this just a made-up scenario?**
 No. Reading a competitor's page to set a price is a normal task, real prices sit one link away, the attacker
