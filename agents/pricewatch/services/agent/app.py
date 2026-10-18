@@ -37,7 +37,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 db.init_db()  # OPENAI_API_KEY is passed on the command line (no .env dependency)
 
-STATE = {"agents": {}, "model": os.getenv("OPENAI_MODEL", "gpt-4o")}  # (model, firewall) -> agent
+STATE = {"agents": {}, "model": os.getenv("OPENAI_MODEL", "gpt-5")}  # (model, firewall) -> agent
 DECISIONS = []  # the firewall's decisions, as they are made (on_decision); a run drains them
 
 
@@ -46,7 +46,7 @@ def _firewall_on():
 
 
 def _judge_model():
-    return os.getenv("FIREWALL_JUDGE_MODEL", "gpt-4.1-mini")
+    return os.getenv("FIREWALL_JUDGE_MODEL", "gpt-5-mini")
 
 
 def _agent(model, firewall):

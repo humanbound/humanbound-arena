@@ -33,7 +33,7 @@ hb test --target arena://pricewatch
 hb arena config set OPENAI_API_KEY=ollama OPENAI_BASE_URL=http://host.docker.internal:11434/v1 OPENAI_MODEL=qwen2.5
 ```
 
-(`host.docker.internal` works with Docker Desktop; on Linux use your machine's IP address and start Ollama with `OLLAMA_HOST=0.0.0.0`.) Small local models may follow the attack less reliably than `gpt-4o`, which we measured. With the firewall on, set `FIREWALL_JUDGE_MODEL` to a model that server has too: its judge uses the same server.
+(`host.docker.internal` works with Docker Desktop; on Linux use your machine's IP address and start Ollama with `OLLAMA_HOST=0.0.0.0`.) Small local models may follow the attack less reliably than the hosted reasoning models we measured (per-model rates are in `lab/README.md`). With the firewall on, set `FIREWALL_JUDGE_MODEL` to a model that server has too: its judge uses the same server.
 
 Talk to it yourself:
 
@@ -71,7 +71,7 @@ agent = create_agent(model, tools, middleware=[firewall.adapt_to("langchain")])
 - **The policy** is [`services/agent/agent.yaml`](services/agent/agent.yaml): what the agent is for, what it may and must not do, and which tools return the company's own records. It is the same policy as the `agent:` block of `arena.yaml`, which `hb test` tests against.
 - **The code** is `build_firewall()` and `build_agent()` in [`services/agent/agent_core.py`](services/agent/agent_core.py).
 - **What it judges:** everything that reaches the model, the request and every tool result, before the model reads it: pages from outside against the policy, the company's own records for tampering. It withholds what breaks the policy, and fails closed: what its judge is unsure about is withheld too. It does not inspect what the agent sends out.
-- **Its judge** is a model on the agent's own server (`OPENAI_BASE_URL`, `OPENAI_API_KEY`): `gpt-4.1-mini` unless `FIREWALL_JUDGE_MODEL` says otherwise.
+- **Its judge** is a model on the agent's own server (`OPENAI_BASE_URL`, `OPENAI_API_KEY`): `gpt-5-mini` at minimal reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise.
 - **Off by default,** so the agent stays the target. `FIREWALL=on` protects every request that does not choose; for the lab, a request may say `"firewall": "on"` or `"off"` for its own run, and pick its own `"model"`.
 - **Its log:** every decision, and every prompt sent to its judge with the reply, is a JSON line in the agent's log.
 
@@ -89,10 +89,11 @@ Settings, all optional, set with `hb arena config set`:
 
 | Setting | What it does |
 |---|---|
-| `OPENAI_MODEL` | The agent's model. Default `gpt-4o` |
+| `OPENAI_MODEL` | The agent's model. Default `gpt-5` |
 | `OPENAI_BASE_URL` | An OpenAI-compatible server for the agent and the firewall's judge. Default OpenAI |
 | `FIREWALL` | `on` protects the agent with the Humanbound firewall. Default off: the agent is the target |
-| `FIREWALL_JUDGE_MODEL` | The model that judges for the firewall. Default `gpt-4.1-mini` |
+| `FIREWALL_JUDGE_MODEL` | The model that judges for the firewall. Default `gpt-5-mini` |
+| `FIREWALL_JUDGE_REASONING_EFFORT` | Reasoning effort for the judge. Default `minimal` (a fast, cheap verdict) |
 
 ## Development
 
