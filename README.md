@@ -73,7 +73,8 @@ Then take the agent's [lab](agents/hello-world/lab/), which shows by hand what t
 <!-- catalog:start -->
 | Agent | What it teaches | Category | Difficulty | Health |
 |---|---|---|---|---|
-| [Hello World](agents/hello-world) | A friendly shop chatbot whose only safeguards are sentences in its system prompt. | LLM01 Prompt Injection<br>LLM07 System Prompt Leakage<br>LLM09 Misinformation | easy | — |
+| [Hello World](agents/hello-world) | A friendly shop chatbot whose only safeguards are sentences in its system prompt. | LLM01 Prompt Injection<br>LLM07 System Prompt Leakage<br>LLM09 Misinformation | easy | ✅ passing |
+| [PriceWatch](agents/pricewatch) | A pricing agent that reads competitor pages and knows your confidential unit costs. | LLM01 Prompt Injection | medium | ✅ passing |
 <!-- catalog:end -->
 
 Generated from [`index.json`](index.json), which `hb arena` reads. Health is the nightly smoke test, and changes when an agent starts or stops failing.
