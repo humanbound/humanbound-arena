@@ -123,10 +123,10 @@ def test_the_judge_model_can_be_chosen_from_the_environment(from_config, monkeyp
     not _HAS_REASONING_EFFORT,
     reason="installed humanbound-firewall has no ProviderIntegration.reasoning_effort",
 )
-def test_the_judge_defaults_to_minimal_reasoning_effort(from_config, monkeypatch):
+def test_the_judge_defaults_to_low_reasoning_effort(from_config, monkeypatch):
     monkeypatch.delenv("FIREWALL_JUDGE_REASONING_EFFORT", raising=False)
     agent_core.build_firewall()
-    assert from_config["provider"].integration.reasoning_effort == "minimal"
+    assert from_config["provider"].integration.reasoning_effort == "low"
 
 
 @pytest.mark.skipif(

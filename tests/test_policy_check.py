@@ -310,6 +310,28 @@ def test_compose_images_are_named_and_pinned(repo):
     assert not any("postgres:16" in e for e in errors)
 
 
+def test_compose_may_reuse_an_image_another_agent_builds(repo):
+    shop = manifest("shop", source={"compose": "docker-compose.yml", "service": "agent"})
+    site = {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"}
+    shop_compose = {"agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"}, "site": site}
+    make_agent(
+        repo,
+        agent_id="shop",
+        doc=shop,
+        files={"docker-compose.yml": yaml.safe_dump({"services": shop_compose})},
+    )
+    _compose_agent(
+        repo,
+        {
+            "agent": {"image": "ghcr.io/humanbound/arena-demo-agent:1.0.0"},
+            "site": site,  # shop's, at shop's version: shared
+            "old": {"image": "ghcr.io/humanbound/arena-shop-site:0.9.0"},
+        },
+    )
+    errors = [e for e in _errors(repo) if "image" in e]
+    assert len(errors) == 1 and "'old'" in errors[0], errors  # no agent builds that tag
+
+
 def test_compose_file_must_exist(repo):
     doc = manifest(source={"compose": "docker-compose.yml", "service": "agent"})
     make_agent(repo, doc=doc)

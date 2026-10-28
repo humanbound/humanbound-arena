@@ -22,7 +22,7 @@ The default agent matrix is the current OpenAI reasoning line:
 Override with --models a,b,c (or OPENAI_MODELS=a,b,c); OPENAI_MODEL=one keeps a single model. A model
 the key cannot reach is reported as an error and the rest of the matrix still runs.
 
-The firewall's judge for the demo is gpt-5-mini at the lowest ("minimal") reasoning effort — override
+The firewall's judge for the demo is gpt-5-mini at "low" reasoning effort — override
 with FIREWALL_JUDGE_MODEL / FIREWALL_JUDGE_REASONING_EFFORT.
 
 From agents/pricewatch/ (the environment is made in lab/README.md, section 1):
@@ -203,7 +203,7 @@ def main(argv=None):
         sys.exit("Set OPENAI_API_KEY first.")
     if do_firewall:  # the demo's judge: gpt-5-mini at the lowest reasoning effort (overridable)
         os.environ.setdefault("FIREWALL_JUDGE_MODEL", "gpt-5-mini")
-        os.environ.setdefault("FIREWALL_JUDGE_REASONING_EFFORT", "minimal")
+        os.environ.setdefault("FIREWALL_JUDGE_REASONING_EFFORT", "low")
     port = str(urlparse(BASE).port or 8001)
     sf = subprocess.Popen([sys.executable, "-m", "uvicorn", "app:app", "--port", port], cwd=STOREFRONT_DIR)
     try:

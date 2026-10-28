@@ -216,6 +216,7 @@ def run_smoke(
     try:
         if build:
             build_images.build_agent(agent)
+            build_images.build_shared(agent)
     except SystemExit as e:
         return result(False, str(e))
 

@@ -118,3 +118,78 @@ def test_check_expect():
     assert "reply_contains" in arena_lib.check_expect({"reply_contains": "zz"}, "abc")
     assert "reply_regex" in arena_lib.check_expect({"reply_regex": "\\d"}, "abc")
     assert arena_lib.check_expect({}, "anything") is None
+
+
+def _compose_agent(repo, agent_id, services):
+    doc = manifest(agent_id, source={"compose": "docker-compose.yml", "service": "agent"})
+    files = {"docker-compose.yml": yaml.safe_dump({"services": services})}
+    return make_agent(repo, agent_id=agent_id, doc=doc, files=files)
+
+
+def test_an_image_another_agent_builds_is_reused_not_built_again(repo):
+    _compose_agent(
+        repo,
+        "shop",
+        {
+            "agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"},
+            "site": {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"},
+        },
+    )
+    path = _compose_agent(
+        repo,
+        "shop2",
+        {
+            "agent": {"image": "ghcr.io/humanbound/arena-shop2-agent:1.0.0"},
+            "site": {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"},
+        },
+    )
+    shop2 = arena_lib.find_agent("shop2", repo)
+    assert arena_lib.image_owner(shop2, "ghcr.io/humanbound/arena-shop-site:1.0.0").id == "shop"
+    assert arena_lib.image_builds(shop2) == [
+        arena_lib.ImageBuild(
+            "ghcr.io/humanbound/arena-shop2-agent:1.0.0",
+            path,
+            path / "services" / "agent" / "Dockerfile",
+        )
+    ]
+
+
+def test_shared_builds_are_the_owners_builds_of_the_reused_images(repo):
+    owner = _compose_agent(
+        repo,
+        "shop",
+        {
+            "agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"},
+            "site": {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"},
+        },
+    )
+    _compose_agent(
+        repo,
+        "shop2",
+        {
+            "agent": {"image": "ghcr.io/humanbound/arena-shop2-agent:1.0.0"},
+            "site": {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"},
+        },
+    )
+    assert arena_lib.shared_builds(arena_lib.find_agent("shop2", repo)) == [
+        arena_lib.ImageBuild(
+            "ghcr.io/humanbound/arena-shop-site:1.0.0",
+            owner,
+            owner / "services" / "site" / "Dockerfile",
+        )
+    ]
+    assert arena_lib.shared_builds(arena_lib.find_agent("shop", repo)) == []
+
+
+def test_an_image_agent_has_no_shared_builds(repo):
+    make_agent(repo)
+    assert arena_lib.shared_builds(arena_lib.find_agent("demo", repo)) == []
+
+
+def test_an_image_no_agent_builds_has_no_owner(repo):
+    _compose_agent(repo, "shop", {"agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"}})
+    shop = arena_lib.find_agent("shop", repo)
+    assert (
+        arena_lib.image_owner(shop, "ghcr.io/humanbound/arena-shop-agent:1.0.0") is None
+    )  # its own
+    assert arena_lib.image_owner(shop, "ghcr.io/humanbound/arena-shop-site:9.9.9") is None
