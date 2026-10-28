@@ -9,7 +9,8 @@
 #   agents/pricewatch-pydantic/lab/start.sh            # then open http://127.0.0.1:8088
 #
 # The firewall is switched on and off on the page, run by run. The first start makes lab/.venv
-# (Python 3.12) and installs the agent's packages into it.
+# (Python 3.12) and installs the agent's packages into it, and a start after the requirements
+# change installs them again (so a raised pin, such as the firewall's, is picked up).
 #
 # Optional: OPENAI_MODEL, OPENAI_BASE_URL, FIREWALL_JUDGE_MODEL, and the ports
 # STOREFRONT_PORT (8001), AGENT_PORT (8000), UI_PORT (8088).
@@ -44,8 +45,13 @@ if [ ! -x "$VENV/bin/python" ]; then
   fi
   echo "Making lab/.venv (first start only)..."
   "$PY" -m venv "$VENV"
-  "$VENV/bin/pip" install --quiet -r "$AGENT/services/agent/requirements.txt" \
-    -r "$STOREFRONT/requirements.txt"
+fi
+REQUIREMENTS=("$AGENT/services/agent/requirements.txt" "$STOREFRONT/requirements.txt")
+INSTALLED="$VENV/.installed-requirements"  # what the last install was given
+if ! cat "${REQUIREMENTS[@]}" | cmp -s - "$INSTALLED"; then
+  echo "Installing the agent's packages into lab/.venv..."
+  "$VENV/bin/pip" install --quiet -r "${REQUIREMENTS[0]}" -r "${REQUIREMENTS[1]}"
+  cat "${REQUIREMENTS[@]}" >"$INSTALLED"
 fi
 
 TMP="${TMPDIR:-/tmp}"

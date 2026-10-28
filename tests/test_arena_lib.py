@@ -181,6 +181,11 @@ def test_shared_builds_are_the_owners_builds_of_the_reused_images(repo):
     assert arena_lib.shared_builds(arena_lib.find_agent("shop", repo)) == []
 
 
+def test_an_image_agent_has_no_shared_builds(repo):
+    make_agent(repo)
+    assert arena_lib.shared_builds(arena_lib.find_agent("demo", repo)) == []
+
+
 def test_an_image_no_agent_builds_has_no_owner(repo):
     _compose_agent(repo, "shop", {"agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"}})
     shop = arena_lib.find_agent("shop", repo)

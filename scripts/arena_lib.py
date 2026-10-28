@@ -155,6 +155,8 @@ def image_builds(agent: Agent) -> list[ImageBuild]:
 def shared_builds(agent: Agent) -> list[ImageBuild]:
     """The builds, from their owners, of the images `agent` reuses from another agent. A smoke
     test builds them too, so it never pulls a tag its owner publishes in the same change."""
+    if not (agent.manifest.get("source") or {}).get("compose"):
+        return []  # an image agent runs one image, its own
     builds = []
     for service in (load_compose(agent).get("services") or {}).values():
         image = service.get("image") if isinstance(service, dict) else None
