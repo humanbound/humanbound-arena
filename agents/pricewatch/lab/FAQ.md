@@ -64,7 +64,7 @@ that runs `lab/start.sh`, and re-export it whenever you open a new terminal with
 
 **With the firewall on, the run fails or the firewall withholds everything.**
 The firewall comes from the `humanbound-firewall` package, and its judge is a model on the agent's own server
-(`OPENAI_BASE_URL`, with `OPENAI_API_KEY`): `gpt-5-mini` at minimal reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. If
+(`OPENAI_BASE_URL`, with `OPENAI_API_KEY`): `gpt-5-mini` at low reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. If
 that server has no such model, a local one for instance, the judge cannot answer, and the firewall, which
 fails closed, withholds what it could not judge: set `FIREWALL_JUDGE_MODEL` to a model the server has.
 

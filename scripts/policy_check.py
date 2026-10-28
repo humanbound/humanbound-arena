@@ -357,8 +357,10 @@ def check_images(agent: Agent) -> list[str]:
             errors.append(f"{where} needs an 'image'")
         elif image.startswith(OUR_IMAGE_PREFIX):
             expected = arena_lib.expected_image(agent.id, version, str(name))
-            if image != expected:
-                errors.append(f"{where}: image must be {expected}")
+            if image != expected and arena_lib.image_owner(agent, image) is None:
+                errors.append(
+                    f"{where}: image must be {expected}, or one another agent here builds"
+                )
         elif not _pinned(image):
             errors.append(f"{where}: third-party image '{image}' must be pinned to a tag or digest")
     return errors

@@ -100,12 +100,38 @@ def load_compose(agent: Agent) -> dict:
     return doc if isinstance(doc, dict) else {}
 
 
+def image_owner(agent: Agent, image: str) -> Agent | None:
+    """The other agent that builds `image`, when `agent` reuses one of its images (a service two
+    agents share, such as one website two builds of an agent read) instead of building its own.
+
+    An image is another agent's when that agent's own compose file names it for a service, under
+    that agent's own image name and version. Ownership is read from names alone, so two agents
+    can never make each other the owner.
+    """
+    for other in discover(agent.path.parents[1]):
+        if other.id == agent.id or not (other.manifest.get("source") or {}).get("compose"):
+            continue
+        try:
+            services = load_compose(other).get("services") or {}
+        except (OSError, yaml.YAMLError):
+            continue
+        for name, service in services.items():
+            if (
+                isinstance(service, dict)
+                and service.get("image") == image
+                and image == expected_image(other.id, other.version, str(name))
+            ):
+                return other
+    return None
+
+
 def image_builds(agent: Agent) -> list[ImageBuild]:
     """The images this repository builds for an agent.
 
     The build context is always the agent folder. Image agents build services/agent/Dockerfile.
     Compose agents build services/<service>/Dockerfile for every service whose image is one of
-    ours; third-party images (a database, say) are pulled as they are.
+    ours; third-party images (a database, say) are pulled as they are, and an image another agent
+    owns (see image_owner) is built by that agent.
     """
     source = agent.manifest.get("source") or {}
     if source.get("image"):
@@ -115,10 +141,26 @@ def image_builds(agent: Agent) -> list[ImageBuild]:
     services = load_compose(agent).get("services") or {}
     for name, service in services.items():
         image = (service or {}).get("image") if isinstance(service, dict) else None
-        if isinstance(image, str) and image.startswith(OUR_IMAGE_PREFIX):
+        if (
+            isinstance(image, str)
+            and image.startswith(OUR_IMAGE_PREFIX)
+            and image_owner(agent, image) is None
+        ):
             builds.append(
                 ImageBuild(image, agent.path, agent.path / "services" / str(name) / "Dockerfile")
             )
+    return builds
+
+
+def shared_builds(agent: Agent) -> list[ImageBuild]:
+    """The builds, from their owners, of the images `agent` reuses from another agent. A smoke
+    test builds them too, so it never pulls a tag its owner publishes in the same change."""
+    builds = []
+    for service in (load_compose(agent).get("services") or {}).values():
+        image = service.get("image") if isinstance(service, dict) else None
+        owner = image_owner(agent, image) if isinstance(image, str) else None
+        if owner is not None:
+            builds += [b for b in image_builds(owner) if b.tag == image]
     return builds
 
 

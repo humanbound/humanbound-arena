@@ -122,6 +122,15 @@ def build_agent(
         _merge_digests(Path(digests_out), found)
 
 
+def build_shared(agent: Agent, *, run: Runner = subprocess.run) -> None:
+    """Build, locally, the images the agent reuses from another agent (never pushed: their
+    owner publishes them)."""
+    for build in arena_lib.shared_builds(agent):
+        print(f"building {build.tag} (shared)", flush=True)
+        if run(build_argv(build, push=False, platforms=None)).returncode:
+            raise SystemExit(f"building {build.tag} failed")
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Build an agent's images.")
     parser.add_argument("ids", nargs="+")

@@ -131,3 +131,28 @@ def test_a_push_with_no_digest_in_the_metadata_warns_and_records_nothing(repo, t
         capsys.readouterr().out
     )
     assert not out.exists()
+
+
+def test_build_shared_builds_the_owners_image_locally(repo):
+    from test_arena_lib import _compose_agent
+
+    site = {"image": "ghcr.io/humanbound/arena-shop-site:1.0.0"}
+    owner = _compose_agent(
+        repo,
+        "shop",
+        {"agent": {"image": "ghcr.io/humanbound/arena-shop-agent:1.0.0"}, "site": site},
+    )
+    _compose_agent(
+        repo,
+        "shop2",
+        {"agent": {"image": "ghcr.io/humanbound/arena-shop2-agent:1.0.0"}, "site": site},
+    )
+    run = FakeRun()
+    build_images.build_shared(arena_lib.find_agent("shop2", repo), run=run)
+    assert run.calls == [[
+        "docker", "build", "-t", "ghcr.io/humanbound/arena-shop-site:1.0.0",
+        "-f", str(owner / "services" / "site" / "Dockerfile"), str(owner),
+    ]]  # fmt: skip
+    run = FakeRun()
+    build_images.build_shared(arena_lib.find_agent("shop", repo), run=run)
+    assert run.calls == []

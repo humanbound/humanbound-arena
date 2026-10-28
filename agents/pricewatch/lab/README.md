@@ -201,7 +201,7 @@ firewall = Firewall.from_config("agent.yaml", provider=judge, fail="closed")
 agent = create_agent(model, tools, middleware=[firewall.adapt_to("langchain")])
 ```
 
-The judge is a model on the same server as the agent's own, with the same `OPENAI_API_KEY` and `OPENAI_BASE_URL`: `gpt-5-mini` at minimal reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. With a local model, set `FIREWALL_JUDGE_MODEL` to a model that server has. `fail="closed"` means that a page the judge is unsure about is withheld: the agent holds secrets.
+The judge is a model on the same server as the agent's own, with the same `OPENAI_API_KEY` and `OPENAI_BASE_URL`: `gpt-5-mini` at low reasoning effort, unless `FIREWALL_JUDGE_MODEL` / `FIREWALL_JUDGE_REASONING_EFFORT` say otherwise. With a local model, set `FIREWALL_JUDGE_MODEL` to a model that server has. `fail="closed"` means that a page the judge is unsure about is withheld: the agent holds secrets.
 
 **Switch it on.** On the walkthrough page, set **firewall** to **on** and press ▶ Run agent again. With `curl`, add `"firewall": "on"` to the request:
 
@@ -228,7 +228,7 @@ Compare its findings with your first run in section 4. The agent still follows t
 
 ```bash
 lab/.venv/bin/python lab/demo_leak.py 5              # the matrix, no defence
-lab/.venv/bin/python lab/demo_leak.py 5 --firewall   # same, firewall on (judge gpt-5-mini, minimal effort)
+lab/.venv/bin/python lab/demo_leak.py 5 --firewall   # same, firewall on (judge gpt-5-mini, low effort)
 ```
 
 Pin a single model with `OPENAI_MODEL=gpt-5-mini …`, or a custom set with `--models a,b,c`; a model your key cannot reach is reported and the rest of the matrix still runs. With the firewall, every blocked run prints `🧱 firewall withheld fetch_url (restriction)` and the judge's reason. The model never reads the attacker's page, so the encoding never happens.

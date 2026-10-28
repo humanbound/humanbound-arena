@@ -5,4 +5,4 @@ langchain>=0.3.0
 langchain-openai>=0.3.0
 langgraph>=0.2.0
 markdownify>=0.11
-humanbound-firewall>=0.3.0   # the firewall, attached to the agent as LangChain middleware
+humanbound-firewall>=0.3.5   # the firewall as LangChain middleware; 0.3.4+ applies the judge's reasoning effort

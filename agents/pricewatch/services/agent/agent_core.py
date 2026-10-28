@@ -66,15 +66,16 @@ def build_firewall(on_decision=None):
     confidential figures, so it fails closed: a page the judge is unsure about is withheld.
     Every decision, and every prompt the judge is sent with its reply, is written to the log.
     `on_decision` is also called with every decision; it cannot change one."""
-    # The judge defaults to gpt-5-mini at the lowest ("minimal") reasoning effort — a fast, cheap
-    # verdict. FIREWALL_JUDGE_MODEL / FIREWALL_JUDGE_REASONING_EFFORT override both. A judge that does
+    # The judge defaults to gpt-5-mini at "low" reasoning effort: a fast verdict that still reads a
+    # page in context ("minimal" withholds the harmless competitor listing, as an instruction).
+    # FIREWALL_JUDGE_MODEL / FIREWALL_JUDGE_REASONING_EFFORT override both. A judge that does
     # not accept the effort parameter has it dropped by the firewall on the first 400, so sending it is
     # always safe. (Needs humanbound-firewall with ProviderIntegration.reasoning_effort; older versions
     # silently ignore it.)
     judge = Provider(name=ProviderName.OPENAI, integration=ProviderIntegration(
         api_key=os.environ["OPENAI_API_KEY"],
         model=os.getenv("FIREWALL_JUDGE_MODEL", "gpt-5-mini"),
-        reasoning_effort=os.getenv("FIREWALL_JUDGE_REASONING_EFFORT", "minimal")))
+        reasoning_effort=os.getenv("FIREWALL_JUDGE_REASONING_EFFORT", "low")))
 
     def decided(d):
         log_decision(d)
