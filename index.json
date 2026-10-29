@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "min_hb_version": "2.12.0",
-  "generated_at": "2026-10-28T13:18:17Z",
+  "generated_at": "2026-10-29T10:02:22Z",
   "agents": [
     {
       "id": "hello-world",
@@ -33,7 +33,10 @@
         "atlas:AML.T0056",
         "atlas:AML.T0057",
         "owasp-llm:LLM02"
-      ]
+      ],
+      "health": {
+        "status": "passing"
+      }
     },
     {
       "id": "pricewatch",
@@ -73,7 +76,10 @@
           "ref": "ghcr.io/humanbound/arena-pricewatch-storefront:1.3.1",
           "digest": "sha256:2f94f191c9cee7e9434f2be6959f1ea7b2e341a8d0955595e1823b135967b5a5"
         }
-      ]
+      ],
+      "health": {
+        "status": "passing"
+      }
     },
     {
       "id": "pricewatch-pydantic",
@@ -110,7 +116,10 @@
           "ref": "ghcr.io/humanbound/arena-pricewatch-pydantic-agent:1.0.0",
           "digest": "sha256:87e26d7d6ca59dd76d6882a3a733bdfe424232f65f059f5478806046196b46c8"
         }
-      ]
+      ],
+      "health": {
+        "status": "passing"
+      }
     }
   ]
 }
